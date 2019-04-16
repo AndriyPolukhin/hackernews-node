@@ -3,35 +3,20 @@
 */
 const { GraphQLServer } = require("graphql-yoga");
 
-// Use to store links at runtime. Store in-memory /not database
-let links = [
-  {
-    id: "link-0",
-    url: "www.howtographql.com",
-    description: "Fullstack tutorial for GraphQL"
-  }
-];
-
-// 1. var to creat a new id for links
-let idCount = links.length;
-
-// 2. Implementation of the GraphQL Schema
 const resolvers = {
   Query: {
     info: () => `This is the API of a Hackernews Clone`,
-    //  new resolver for the feed schema type
-    feed: () => links
+    feed: (root, args, context, info) => {
+      return context.prisma.links();
+    }
   },
   Mutation: {
     // 2. post resolver
-    post: (parent, args) => {
-      const link = {
-        id: `link-${idCount++}`,
-        description: args.description,
-        url: args.url
-      };
-      links.push(link);
-      return link;
+    post: (root, args, context) => {
+      return context.prisma.createLink({
+        url: args.url,
+        description: args.description
+      });
     }
   },
   // 3 more resolvers for the types in Links
